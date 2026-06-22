@@ -444,26 +444,86 @@ function hidePopup() {
 el.overlay.addEventListener('click', hidePopup);
 el.popupPlay.addEventListener('click', () => {
   hidePopup();
-  playThreeTimes();
+  if (currentPopupWord) playWordThreeTimes(currentPopupWord);
 });
 
-// Play current sentence 3 times from MP3 with 5s pause
-function playThreeTimes() {
-  if (!S.audioLoaded) return;
-  S.mode = 'sentence';
+// Play a specific word 3 times from MP3 by seeking to its position in the sentence
+function playWordThreeTimes(word) {
+  if (!S.audioLoaded || !S.audioEl) return;
+  S.mode = 'word';
   updateModeUI();
+
+  const segIdx = S.idx;
+  let segStart, segEnd;
+  if (S.sentenceSegments && S.sentenceSegments[segIdx]) {
+    segStart = S.sentenceSegments[segIdx].start;
+    segEnd = S.sentenceSegments[segIdx].end;
+  } else {
+    segStart = S.sentenceTimings[segIdx] || 0;
+    segEnd = segIdx < S.total - 1 ? (S.sentenceTimings[segIdx + 1] || S.audioDuration) : S.audioDuration;
+  }
+
+  // Find word position within sentence (character-weighted)
+  const sentenceWords = ARTICLE.sentences[segIdx].en.split(/\s+/);
+  const wordLower = word.toLowerCase().replace(/[^a-z'-]/g, '');
+  let wordIndex = -1;
+  for (let i = 0; i < sentenceWords.length; i++) {
+    if (sentenceWords[i].toLowerCase().replace(/[^a-z'-]/g, '') === wordLower) {
+      wordIndex = i; break;
+    }
+  }
+  if (wordIndex === -1) { S.mode = 'idle'; updateModeUI(); return; }
+
+  // Calculate time position of the word
+  const segDur = segEnd - segStart;
+  let totalChars = 0;
+  for (let i = 0; i < sentenceWords.length; i++) totalChars += sentenceWords[i].length;
+  let charPos = 0;
+  for (let i = 0; i < wordIndex; i++) charPos += sentenceWords[i].length;
+  const wordTimeStart = segStart + (charPos / totalChars) * segDur;
+  const wordTimeEnd = segStart + ((charPos + sentenceWords[wordIndex].length) / totalChars) * segDur;
+
+  // Play a clip centered on the word (word duration + small padding)
+  const clipStart = Math.max(segStart, wordTimeStart - 0.15);
+  const clipEnd = Math.min(segEnd, wordTimeEnd + 0.3);
+
   let count = 0;
   function playOnce() {
-    if (S.mode !== 'sentence') return;
+    if (S.mode !== 'word') return;
     count++;
-    playSegment(S.idx, () => {
-      if (count < 3) {
-        setTimeout(playOnce, 5000);
-      } else {
-        S.mode = 'idle';
-        updateModeUI();
+    highlightWord(word);
+
+    S.audioEl.currentTime = clipStart;
+    S.audioEl.onended = null;
+    const onReady = () => {
+      S.audioEl.removeEventListener('seeked', onReady);
+      S.audioEl.play().catch(() => {});
+    };
+    S.audioEl.addEventListener('seeked', onReady, { once: true });
+    setTimeout(() => {
+      if (S.audioEl.paused && S.mode === 'word') {
+        S.audioEl.removeEventListener('seeked', onReady);
+        S.audioEl.play().catch(() => {});
       }
-    });
+    }, 200);
+
+    // Stop at clip end
+    function checkEnd() {
+      if (S.mode !== 'word') return;
+      if (S.audioEl.currentTime >= clipEnd) {
+        S.audioEl.pause();
+        clearHighlights();
+        if (count < 3) {
+          setTimeout(playOnce, 800);
+        } else {
+          S.mode = 'idle';
+          updateModeUI();
+        }
+      } else {
+        requestAnimationFrame(checkEnd);
+      }
+    }
+    requestAnimationFrame(checkEnd);
   }
   playOnce();
 }
