@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>C25 中国茶历史</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#F6F6F6;--card:#FFFFFF;--border:#EDEEEC;--text:#37352F;--text2:#6B6B6B;--text3:#9B9B9B;
+  --accent:#97CAEE;--accent-bg:rgba(151,202,238,.12);
+  --red:#E03E3E;--red-bg:rgba(224,62,62,.08);
+  --blue:#2383E2;--blue-bg:rgba(35,131,226,.08);
+  --purple:#9065B0;--purple-bg:rgba(144,101,176,.08);
+  --green:#0F7B6C;--green-bg:rgba(15,123,108,.08);
+  --r:6px;
+  --font:-apple-system,BlinkMacSystemFont,'Inter','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;
+  --safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);
+}
+html,body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
+
+/* ── Header ── */
+.header{padding:calc(12px + var(--safe-top)) 20px 10px;display:flex;align-items:center;justify-content:space-between}
+.header-title{font-size:15px;font-weight:600;letter-spacing:-.2px}
+.header-right{display:flex;align-items:center;gap:12px}
+.progress-text{font-size:12px;color:var(--text3);font-variant-numeric:tabular-nums}
+.btn-upload{width:28px;height:28px;border:1px solid var(--border);border-radius:var(--r);background:var(--card);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text3);transition:border-color .15s}
+.btn-upload:active{border-color:var(--accent)}
+.btn-upload svg{width:16px;height:16px}
+
+/* ── Progress bar ── */
+.progress-bar{height:2px;background:var(--border);margin:0 20px}
+.progress-fill{height:100%;background:var(--text);border-radius:1px;transition:width .35s ease;width:0%}
+
+/* ── Controls ── */
+.controls{display:flex;gap:8px;padding:14px 20px 6px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border:1px solid var(--border);border-radius:var(--r);background:var(--card);color:var(--text2);font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;transition:all .15s ease;white-space:nowrap;user-select:none;-webkit-user-select:none}
+.btn:active{transform:scale(.97)}
+.btn.playing{background:var(--accent-bg);border-color:var(--accent);color:var(--blue)}
+.btn svg{width:14px;height:14px;flex-shrink:0}
+.btn-loop{padding:7px 10px}
+.btn-loop.loop-on{background:var(--accent-bg);border-color:var(--accent);color:var(--blue)}
+.btn-stop{padding:7px 10px}
+.speed-ctrl{display:flex;align-items:center;gap:4px;padding:0 10px;border:1px solid var(--border);border-radius:var(--r);background:var(--card);font-size:12px;color:var(--text3);height:34px}
+.speed-btn{background:none;border:none;font-size:16px;color:var(--text2);cursor:pointer;padding:2px 4px;font-family:var(--font);line-height:1}
+.speed-val{min-width:28px;text-align:center;font-variant-numeric:tabular-nums;font-size:12px;font-weight:500}
+
+/* ── Content ── */
+.content{flex:1;padding:12px 20px 8px;display:flex;flex-direction:column}
+.sentence-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:28px 20px 24px;flex:1;display:flex;flex-direction:column;justify-content:center;min-height:220px;position:relative}
+.sentence-en{font-size:19px;line-height:2;font-weight:400;color:var(--text);margin-bottom:16px;letter-spacing:-.1px}
+.sentence-zh{font-size:14px;line-height:1.8;color:var(--text2);padding-top:14px;border-top:1px solid var(--border)}
+
+/* ── Vocab words ── */
+.vocab-word{cursor:pointer;padding:1px 3px;border-radius:3px;transition:background .12s;font-weight:500;position:relative}
+.vocab-word:active{opacity:.8}
+.vocab-word.hl{background:rgba(151,202,238,.3)!important;outline:2px solid var(--accent);outline-offset:1px;border-radius:3px}
+.freq-high{color:var(--red);background:var(--red-bg)}
+.freq-mid{color:var(--blue);background:var(--blue-bg)}
+.freq-low{color:var(--purple);background:var(--purple-bg)}
+.freq-easy{color:var(--green);background:var(--green-bg)}
+.word{padding:1px 2px;border-radius:3px;transition:background .12s}
+.hl{background:rgba(151,202,238,.35)!important;outline:2px solid var(--accent);outline-offset:1px;border-radius:3px}
+
+/* ── Navigation ── */
+.nav{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;padding-bottom:calc(14px + var(--safe-bot))}
+.nav-btn{display:flex;align-items:center;gap:4px;padding:8px 16px;border:1px solid var(--border);border-radius:var(--r);background:var(--card);color:var(--text2);font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;transition:all .15s;user-select:none;-webkit-user-select:none}
+.nav-btn:active:not(:disabled){transform:scale(.97)}
+.nav-btn:disabled{opacity:.35;cursor:default}
+.nav-btn svg{width:14px;height:14px}
+.page-dots{display:flex;gap:5px;align-items:center}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--border);transition:all .25s}
+.dot.active{background:var(--text);width:14px;border-radius:3px}
+.dot.memorized{background:var(--green)}
+
+/* ── Word popup ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.18);z-index:100;opacity:0;pointer-events:none;transition:opacity .2s}
+.overlay.show{opacity:1;pointer-events:auto}
+.word-popup{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-radius:12px 12px 0 0;padding:24px 20px;padding-bottom:calc(24px + var(--safe-bot));z-index:101;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);max-height:55vh;overflow-y:auto}
+.word-popup.show{transform:translateY(0)}
+.popup-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px}
+.popup-word{font-size:26px;font-weight:700;margin-bottom:2px}
+.popup-phonetic{font-size:14px;color:var(--text3);margin-bottom:2px}
+.popup-pos{font-size:12px;color:var(--text3);margin-bottom:14px;font-style:italic}
+.popup-def{font-size:15px;line-height:1.7;color:var(--text);margin-bottom:18px;white-space:pre-line}
+.popup-actions{display:flex;gap:8px}
+.popup-btn{flex:1;padding:10px;border:1px solid var(--border);border-radius:var(--r);background:var(--card);color:var(--text);font-size:13px;font-weight:500;font-family:var(--font);cursor:pointer;text-align:center;transition:all .15s}
+.popup-btn:active{background:var(--bg)}
+.popup-btn.primary{background:var(--accent-bg);border-color:var(--accent);color:var(--blue)}
+.popup-btn.memorized{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+
+/* ── Audio hint ── */
+.audio-hint{font-size:12px;color:var(--text3);padding:2px 20px 0;min-height:18px}
+.audio-hint a{color:var(--accent);text-decoration:none}
+
+/* ── Legend ── */
+.legend{display:flex;gap:12px;padding:0 20px 8px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text3)}
+.legend-dot{width:8px;height:8px;border-radius:2px}
+.legend-dot.lh{background:var(--red)}.legend-dot.lm{background:var(--blue)}.legend-dot.ll{background:var(--purple)}.legend-dot.le{background:var(--green)}
+
+/* ── Responsive ── */
+@media(min-width:500px){
+  body{max-width:420px;margin:0 auto;box-shadow:0 0 40px rgba(0,0,0,.06)}
+}
+
+/* ── Dark mode (optional, follows system) ── */
+@media(prefers-color-scheme:dark){
+  :root{--bg:#191919;--card:#202020;--border:#2f2f2f;--text:#e0e0e0;--text2:#a0a0a0;--text3:#666;
+    --red-bg:rgba(224,62,62,.12);--blue-bg:rgba(35,131,226,.12);--purple-bg:rgba(144,101,176,.12);--green-bg:rgba(15,123,108,.12)}
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-title">C25 中国茶历史</div>
+  <div class="header-right">
+    <span class="progress-text" id="progressText">1 / 10</span>
+    <label class="btn-upload" title="加载MP3音频">
+      <input type="file" accept="audio/*" id="audioInput" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+    </label>
+  </div>
+</div>
+
+<!-- Progress bar -->
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+<!-- Legend -->
+<div class="legend">
+  <span class="legend-item"><span class="legend-dot lh"></span>高频</span>
+  <span class="legend-item"><span class="legend-dot lm"></span>中频</span>
+  <span class="legend-item"><span class="legend-dot ll"></span>低频</span>
+  <span class="legend-item"><span class="legend-dot le"></span>简单</span>
+</div>
+
+<!-- Controls -->
+<div class="controls">
+  <button class="btn" id="btnFull">
+    <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>
+    全篇通读
+  </button>
+  <button class="btn btn-loop" id="btnLoop" title="循环播放">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+  </button>
+  <button class="btn" id="btnSentence">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg>
+    单句循环
+  </button>
+  <button class="btn btn-stop" id="btnStop" style="display:none">
+    <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+  </button>
+  <div class="speed-ctrl">
+    <button class="speed-btn" id="speedDown">&minus;</button>
+    <span class="speed-val" id="speedVal">1x</span>
+    <button class="speed-btn" id="speedUp">+</button>
+  </div>
+</div>
+
+<div class="audio-hint" id="audioHint"></div>
+
+<!-- Main content -->
+<div class="content">
+  <div class="sentence-card" id="sentenceCard">
+    <div class="sentence-en" id="sentenceEn"></div>
+    <div class="sentence-zh" id="sentenceZh"></div>
+  </div>
+</div>
+
+<!-- Navigation -->
+<div class="nav">
+  <button class="nav-btn" id="btnPrev" disabled>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    上一句
+  </button>
+  <div class="page-dots" id="pageDots"></div>
+  <button class="nav-btn" id="btnNext">
+    下一句
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 6 15 12 9 18"/></svg>
+  </button>
+</div>
+
+<!-- Word detail popup -->
+<div class="overlay" id="overlay"></div>
+<div class="word-popup" id="wordPopup">
+  <div class="popup-handle"></div>
+  <div class="popup-word" id="popupWord"></div>
+  <div class="popup-phonetic" id="popupPhonetic"></div>
+  <div class="popup-pos" id="popupPos"></div>
+  <div class="popup-def" id="popupDef"></div>
+  <div class="popup-actions">
+    <button class="popup-btn primary" id="popupPlay">循环播放此句</button>
+    <button class="popup-btn" id="popupMemorize">已记住</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// Article Data
+// ═══════════════════════════════════════════
+const ARTICLE = {
+  title: 'The History of Chinese Tea',
+  titleZh: '中国茶历史',
+  sentences: [
+    {
+      en: 'Chinese tea has a magical history that began with a simple leaf falling into water.',
+      zh: '中国茶有着神奇的历史，始于一片叶子落入水中。',
+      vocab: {
+        'magical': { p:'/ˈmædʒɪkl/', pos:'adj.', d:'神奇的；有魔力的', f:'easy' },
+        'history': { p:'/ˈhɪstri/', pos:'n.', d:'历史；历史学\n[C,U]历史；[C]个人经历', f:'easy' }
+      }
+    },
+    {
+      en: 'This accidental discovery led to the creation of tea, which has since become an essential part of Chinese culture.',
+      zh: '这次意外发现引发了茶的诞生，自此，茶成为中国文化中不可或缺的一部分。',
+      vocab: {
+        'accidental': { p:'/ˌæksɪˈdentl/', pos:'adj.', d:'意外的；偶然的', f:'mid' },
+        'discovery': { p:'/dɪˈskʌvəri/', pos:'n.', d:'被发现的事物；[C,U]发现；发觉', f:'high' },
+        'creation': { p:'/kriˈeɪʃn/', pos:'n.', d:'创造；创作；创造物', f:'mid' },
+        'essential': { p:'/ɪˈsenʃl/', pos:'adj.', d:'必不可少的；极其重要的；基本的', f:'high' },
+        'culture': { p:'/ˈkʌltʃə(r)/', pos:'n.', d:'[C,U]文化', f:'high' }
+      }
+    },
+    {
+      en: 'From ancient poetry to modern tea ceremonies, the art of tea has woven itself into the fabric of Chinese life.',
+      zh: '从古代诗歌到现代茶艺，茶的艺术已经深深融入中国人的生活纹理中。',
+      vocab: {
+        'ancient': { p:'/ˈeɪnʃənt/', pos:'adj.', d:'古代的；古老的', f:'high' },
+        'poetry': { p:'/ˈpəʊətri/', pos:'n.', d:'[U]诗歌；诗作；诗集', f:'mid' },
+        'modern': { p:'/ˈmɒdn/', pos:'adj.', d:'现代化的；现代的', f:'easy' },
+        'ceremonies': { p:'/ˈserɪməniz/', pos:'n.', d:'典礼；仪式（ceremony的复数）', f:'easy' },
+        'woven': { p:'/ˈwəʊvn/', pos:'v.', d:'编织（weave的过去分词）', f:'low' },
+        'fabric': { p:'/ˈfæbrɪk/', pos:'n.', d:'[U,C]织物；布料\n[sing.]（社会、机构等的）结构', f:'mid' }
+      }
+    },
+    {
+      en: 'In the spring, tea picking is a significant activity in South China, especially in the Yangtze River basin.',
+      zh: '在春天，采茶是中国南方，尤其是长江流域的重要活动。',
+      vocab: {
+        'significant': { p:'/sɪɡˈnɪfɪkənt/', pos:'adj.', d:'有重大意义的；显著的\n意味深长的；别有含义的', f:'high' },
+        'activity': { p:'/ækˈtɪvəti/', pos:'n.', d:'[C]活动；[U]热闹状况', f:'easy' },
+        'especially': { p:'/ɪˈspeʃəli/', pos:'adv.', d:'特别；尤其；格外', f:'easy' },
+        'basin': { p:'/ˈbeɪsn/', pos:'n.', d:'[C]盆；盆地；洗涤槽\n[C]流域', f:'low' }
+      }
+    },
+    {
+      en: 'The first tea leaves, known as Mingqian tea, are picked before the Qingming Festival in early April.',
+      zh: '清明节前采摘的第一批茶叶被称为明前茶。',
+      vocab: {
+        'leaves': { p:'/liːvz/', pos:'n.', d:'叶子（leaf的复数）', f:'easy' },
+        'festival': { p:'/ˈfestɪvl/', pos:'n.', d:'[C]节日；庆典', f:'easy' }
+      }
+    },
+    {
+      en: 'These leaves are prized for their exceptional quality and bring joy to tea lovers.',
+      zh: '这些茶叶因其卓越的品质而备受珍视，给茶爱好者带来了极大的喜悦。',
+      vocab: {
+        'prized': { p:'/praɪzd/', pos:'adj.', d:'被珍视的；被高度重视的', f:'low' },
+        'exceptional': { p:'/ɪkˈsepʃənl/', pos:'adj.', d:'杰出的；卓越的；异常的', f:'mid' },
+        'quality': { p:'/ˈkwɒləti/', pos:'n.', d:'[U,C]质量；品质；特征', f:'high' },
+        'joy': { p:'/dʒɔɪ/', pos:'n.', d:'[U]喜悦；高兴\n[C]乐趣；令人高兴的事', f:'high' }
+      }
+    },
+    {
+      en: "China's Zhejiang province is famous for its tea production.",
+      zh: '中国的浙江省因其茶叶生产而闻名。',
+      vocab: {
+        'province': { p:'/ˈprɒvɪns/', pos:'n.', d:'[C]省份', f:'easy' },
+        'production': { p:'/prəˈdʌkʃn/', pos:'n.', d:'[U]生产；制造', f:'easy' }
+      }
+    },
+    {
+      en: 'Renowned varieties such as Anji White Tea and West Lake Longjing Tea come from here.',
+      zh: '著名的茶类如安吉白茶和西湖龙井茶就产自这里。',
+      vocab: {
+        'renowned': { p:'/rɪˈnaʊnd/', pos:'adj.', d:'著名的；有声望的', f:'low' },
+        'varieties': { p:'/vəˈraɪətiz/', pos:'n.', d:'品种；种类（variety的复数）', f:'mid' }
+      }
+    },
+    {
+      en: 'During peak seasons, tea fields are bustling with workers and tourists who come to enjoy the picturesque scenery and savor freshly brewed tea.',
+      zh: '在采茶旺季，茶田里挤满了工人和游客，他们来这里欣赏美丽的风景，品尝新鲜沏好的茶。',
+      vocab: {
+        'peak': { p:'/piːk/', pos:'n./adj.', d:'[C]顶峰；高峰；最高的', f:'mid' },
+        'bustling': { p:'/ˈbʌslɪŋ/', pos:'adj.', d:'繁忙的；熙熙攘攘的', f:'low' },
+        'tourists': { p:'/ˈtʊərɪsts/', pos:'n.', d:'旅游者；游客（tourist的复数）', f:'easy' },
+        'picturesque': { p:'/ˌpɪktʃəˈresk/', pos:'adj.', d:'美丽的；如画的', f:'low' },
+        'scenery': { p:'/ˈsiːnəri/', pos:'n.', d:'[U]风景；景色', f:'mid' },
+        'savor': { p:'/ˈseɪvə(r)/', pos:'v.', d:'品味；细细品尝；享受', f:'low' },
+        'freshly': { p:'/ˈfreʃli/', pos:'adv.', d:'新鲜地；刚刚', f:'easy' },
+        'brewed': { p:'/bruːd/', pos:'adj.', d:'沏(茶)；酿造(啤酒)的', f:'low' }
+      }
+    },
+    {
+      en: 'The tradition and love for tea continue to thrive, honoring a legacy that spans thousands of years.',
+      zh: '对茶的传统和热爱继续繁荣，尊重着跨越数千年的遗产。',
+      vocab: {
+        'tradition': { p:'/trəˈdɪʃn/', pos:'n.', d:'[C,U]传统；传统的信仰（或风俗）', f:'high' },
+        'thrive': { p:'/θraɪv/', pos:'v.', d:'繁荣；兴旺；茁壮成长', f:'mid' },
+        'legacy': { p:'/ˈleɡəsi/', pos:'n.', d:'[C]遗产；遗留物', f:'mid' },
+        'spans': { p:'/spænz/', pos:'v.', d:'跨越；持续（span的第三人称单数）', f:'easy' }
+      }
+    }
+  ]
+};
+
+// ═══════════════════════════════════════════
+// App State
+// ═══════════════════════════════════════════
+const S = {
+  idx: 0,
+  total: ARTICLE.sentences.length,
+  speed: 1,
+  mode: 'idle',        // idle | full | sentence | word
+  audioEl: null,
+  audioLoaded: false,
+  audioDuration: 0,
+  sentenceSegments: null,
+  sentenceTimings: [],
+  fullTimer: null,
+  segmentTimer: null,
+  synth: window.speechSynthesis,
+  currentUtterance: null,
+  memorized: {},        // { word_lower: true }
+  loop: false,
+  wordReadCount: 0,
+  wordReadTarget: null
+};
+
+// ═══════════════════════════════════════════
+// DOM References
+// ═══════════════════════════════════════════
+const $ = id => document.getElementById(id);
+const el = {
+  progressText: $('progressText'), progressFill: $('progressFill'),
+  btnFull: $('btnFull'), btnLoop: $('btnLoop'), btnSentence: $('btnSentence'), btnStop: $('btnStop'),
+  speedVal: $('speedVal'), speedDown: $('speedDown'), speedUp: $('speedUp'),
+  sentenceEn: $('sentenceEn'), sentenceZh: $('sentenceZh'),
+  btnPrev: $('btnPrev'), btnNext: $('btnNext'), pageDots: $('pageDots'),
+  overlay: $('overlay'), wordPopup: $('wordPopup'),
+  popupWord: $('popupWord'), popupPhonetic: $('popupPhonetic'),
+  popupPos: $('popupPos'), popupDef: $('popupDef'),
+  popupPlay: $('popupPlay'), popupMemorize: $('popupMemorize'),
+  audioInput: $('audioInput'), audioHint: $('audioHint')
+};
+
+// ═══════════════════════════════════════════
+// Rendering
+// ═══════════════════════════════════════════
+function render() {
+  const s = ARTICLE.sentences[S.idx];
+
+  // Build English sentence with highlighted vocab words
+  let html = s.en;
+  // Sort vocab words by length (longest first) to avoid partial replacements
+  const vocabWords = Object.keys(s.vocab).sort((a, b) => b.length - a.length);
+  vocabWords.forEach(word => {
+    const v = s.vocab[word];
+    const re = new RegExp(`\\b(${escapeRe(word)})\\b`, 'gi');
+    html = html.replace(re, (match) => {
+      const memClass = S.memorized[match.toLowerCase()] ? ' memorized-word' : '';
+      return `<span class="vocab-word freq-${v.f}${memClass}" data-word="${match}">${match}</span>`;
+    });
+  });
+
+  // Wrap all remaining plain words in spans
+  html = html.replace(/([A-Za-z][A-Za-z'-]*)(?!([^<]*>))/g, (match, word) => {
+    return `<span class="word" data-word="${word}">${word}</span>`;
+  });
+
+  el.sentenceEn.innerHTML = html;
+
+  // Assign sequential word index to every word span
+  el.sentenceEn.querySelectorAll('[data-word]').forEach((span, i) => {
+    span.dataset.wi = i;
+  });
+
+  el.sentenceZh.textContent = s.zh;
+
+  // Progress
+  el.progressText.textContent = `${S.idx + 1} / ${S.total}`;
+  el.progressFill.style.width = `${((S.idx + 1) / S.total) * 100}%`;
+
+  // Nav buttons
+  el.btnPrev.disabled = S.idx === 0;
+  el.btnNext.disabled = S.idx === S.total - 1;
+
+  // Dots
+  renderDots();
+
+  // Bind word clicks
+  el.sentenceEn.querySelectorAll('.vocab-word').forEach(span => {
+    span.addEventListener('click', () => showWordPopup(span.dataset.word));
+  });
+}
+
+function renderDots() {
+  let html = '';
+  for (let i = 0; i < S.total; i++) {
+    const cls = ['dot'];
+    if (i === S.idx) cls.push('active');
+    // Check if all vocab words in this sentence are memorized
+    const s = ARTICLE.sentences[i];
+    const allMem = Object.keys(s.vocab).every(w => S.memorized[w.toLowerCase()]);
+    if (allMem && Object.keys(s.vocab).length > 0) cls.push('memorized');
+    html += `<span class="${cls.join(' ')}" data-idx="${i}"></span>`;
+  }
+  el.pageDots.innerHTML = html;
+  el.pageDots.querySelectorAll('.dot').forEach(dot => {
+    dot.addEventListener('click', () => {
+      stopAll();
+      S.idx = parseInt(dot.dataset.idx);
+      render();
+    });
+  });
+}
+
+function escapeRe(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// ═══════════════════════════════════════════
+// Word Popup
+// ═══════════════════════════════════════════
+let currentPopupWord = null;
+
+function showWordPopup(word) {
+  // Find vocab entry
+  const s = ARTICLE.sentences[S.idx];
+  const key = Object.keys(s.vocab).find(w => w.toLowerCase() === word.toLowerCase());
+  if (!key) return;
+  const v = s.vocab[key];
+  currentPopupWord = key;
+
+  el.popupWord.textContent = key;
+  el.popupWord.className = `popup-word freq-${v.f}`;
+  el.popupPhonetic.textContent = v.p;
+  el.popupPos.textContent = v.pos;
+  el.popupDef.textContent = v.d;
+
+  const isMem = S.memorized[key.toLowerCase()];
+  el.popupMemorize.textContent = isMem ? '取消标记' : '已记住';
+  el.popupMemorize.className = isMem ? 'popup-btn memorized' : 'popup-btn';
+
+  el.overlay.classList.add('show');
+  el.wordPopup.classList.add('show');
+}
+
+function hidePopup() {
+  el.overlay.classList.remove('show');
+  el.wordPopup.classList.remove('show');
+  stopSpeech();
+  currentPopupWord = null;
+}
+
+el.overlay.addEventListener('click', hidePopup);
+el.popupPlay.addEventListener('click', () => {
+  hidePopup();
+  readSentenceLoop();
+});
+el.popupMemorize.addEventListener('click', () => {
+  if (!currentPopupWord) return;
+  const k = currentPopupWord.toLowerCase();
+  S.memorized[k] = !S.memorized[k];
+  const isMem = S.memorized[k];
+  el.popupMemorize.textContent = isMem ? '取消标记' : '已记住';
+  el.popupMemorize.className = isMem ? 'popup-btn memorized' : 'popup-btn';
+  render(); // re-render to update word styles
+});
+
+// ═══════════════════════════════════════════
+// Text-to-Speech
+// ═══════════════════════════════════════════
+function speak(text, onBoundary, onEnd) {
+  stopSpeech();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US';
+  u.rate = S.speed;
+  S.currentUtterance = u;
+
+  if (onBoundary) {
+    u.onboundary = (e) => {
+      if (e.name === 'word') {
+        const word = text.substring(e.charIndex, e.charIndex + e.charLength);
+        onBoundary(word, e.charIndex, e.charLength);
+      }
+    };
+  }
+  u.onend = () => {
+    S.currentUtterance = null;
+    if (onEnd) onEnd();
+  };
+  u.onerror = () => {
+    S.currentUtterance = null;
+    if (onEnd) onEnd();
+  };
+
+  S.synth.speak(u);
+}
+
+function stopSpeech() {
+  if (S.synth.speaking || S.synth.pending) {
+    S.synth.cancel();
+  }
+  S.currentUtterance = null;
+}
+
+function highlightWord(wordOrIdx) {
+  // Remove previous highlights
+  document.querySelectorAll('.hl').forEach(el => el.classList.remove('hl'));
+
+  if (typeof wordOrIdx === 'number') {
+    // Highlight by word index (only that specific position)
+    const span = document.querySelector(`[data-wi="${wordOrIdx}"]`);
+    if (span) span.classList.add('hl');
+  } else {
+    // Highlight by word text (fallback — for popup use)
+    const w = wordOrIdx.toLowerCase().replace(/[^a-z'-]/g, '');
+    document.querySelectorAll('[data-word]').forEach(span => {
+      const sw = span.dataset.word.toLowerCase().replace(/[^a-z'-]/g, '');
+      if (sw === w) span.classList.add('hl');
+    });
+  }
+}
+
+function clearHighlights() {
+  document.querySelectorAll('.hl').forEach(el => el.classList.remove('hl'));
+}
+
+// Highlight a word visually 3 times (word-level audio not extractable from MP3)
+function readWordThreeTimes(word) {
+  S.mode = 'word';
+  let count = 0;
+
+  function showOnce() {
+    count++;
+    highlightWord(word);
+    setTimeout(() => {
+      clearHighlights();
+      if (count < 3) {
+        setTimeout(showOnce, 800);
+      } else {
+        S.mode = 'idle';
+      }
+    }, 1000);
+  }
+  showOnce();
+}
+
+// ═══════════════════════════════════════════
+// Silence Detection — find sentence boundaries
+// ═══════════════════════════════════════════
+function calcSentenceTimings() {
+  if (!S.audioDuration) return;
+  const totalWords = ARTICLE.sentences.reduce((sum, s) => sum + s.en.split(/\s+/).length, 0);
+  let cumulative = 0;
+  S.sentenceTimings = ARTICLE.sentences.map(s => {
+    const wordCount = s.en.split(/\s+/).length;
+    const startTime = (cumulative / totalWords) * S.audioDuration;
+    cumulative += wordCount;
+    return startTime;
+  });
+}
+
+function decodeAudioAndDetect() {
+  if (!S.audioEl || !S.audioEl.src) return;
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  if (!AudioCtx) { calcSentenceTimings(); return; }
+  el.audioHint.textContent = '正在分析音频...';
+
+  // Use XHR for broader WeChat compatibility
+  const xhr = new XMLHttpRequest();
+  xhr.open('GET', S.audioEl.src, true);
+  xhr.responseType = 'arraybuffer';
+  xhr.onload = function() {
+    if (xhr.status === 200 || xhr.status === 0) {
+      const ctx = new AudioCtx();
+      ctx.decodeAudioData(xhr.response, function(audioBuffer) {
+        try {
+          const raw = audioBuffer.getChannelData(0);
+          const sr = audioBuffer.sampleRate;
+
+          const winSize = Math.floor(sr * 0.02);
+          const energy = [];
+          for (let i = 0; i < raw.length; i += winSize) {
+            let sum = 0, n = 0;
+            for (let j = i; j < Math.min(i + winSize, raw.length); j++) {
+              sum += raw[j] * raw[j]; n++;
+            }
+            energy.push(Math.sqrt(sum / n));
+          }
+
+          const maxE = Math.max(...energy);
+          const threshold = maxE * 0.015;
+          const minWin = 10;
+          const silent = [];
+          let run = 0;
+          for (let i = 0; i < energy.length; i++) {
+            if (energy[i] < threshold) { run++; }
+            else {
+              if (run >= minWin) silent.push({ s: (i - run) * winSize / sr, e: i * winSize / sr });
+              run = 0;
+            }
+          }
+          if (run >= minWin) silent.push({ s: (energy.length - run) * winSize / sr, e: energy.length * winSize / sr });
+
+          const segs = [];
+          let last = 0;
+          for (const g of silent) {
+            if (g.s - last > 0.4) segs.push({ start: last, end: g.s });
+            last = g.e;
+          }
+          if (audioBuffer.duration - last > 0.4) segs.push({ start: last, end: audioBuffer.duration });
+
+          for (const seg of segs) {
+            seg.start = Math.max(0, seg.start - 0.25);
+            seg.end = Math.min(audioBuffer.duration, seg.end + 0.12);
+          }
+
+          while (segs.length > S.total + 3 && segs.length > 2) {
+            let minGap = Infinity, mi = -1;
+            for (let i = 0; i < segs.length - 1; i++) {
+              const gap = segs[i + 1].start - segs[i].end;
+              if (gap < minGap) { minGap = gap; mi = i; }
+            }
+            if (mi >= 0) { segs[mi].end = segs[mi + 1].end; segs.splice(mi + 1, 1); }
+            else break;
+          }
+
+          if (segs.length >= S.total) {
+            S.sentenceSegments = segs.slice(0, S.total);
+            S.sentenceTimings = S.sentenceSegments.map(s => s.start);
+          } else {
+            S.sentenceSegments = null;
+            calcSentenceTimings();
+          }
+        } catch(e) {
+          S.sentenceSegments = null;
+          calcSentenceTimings();
+        }
+        ctx.close();
+        el.audioHint.textContent = `音频已就绪 (${formatTime(S.audioDuration)}) · 原声播放`;
+      }, function() {
+        calcSentenceTimings();
+        el.audioHint.textContent = `音频已就绪 (${formatTime(S.audioDuration)}) · 原声播放`;
+      });
+    } else {
+      calcSentenceTimings();
+      el.audioHint.textContent = `音频已就绪 (${formatTime(S.audioDuration)}) · 原声播放`;
+    }
+  };
+  xhr.onerror = function() {
+    calcSentenceTimings();
+    el.audioHint.textContent = `音频已就绪 (${formatTime(S.audioDuration)}) · 原声播放`;
+  };
+  xhr.send();
+}
+
+// ═══════════════════════════════════════════
+// Play one sentence segment from MP3
+// ═══════════════════════════════════════════
+function playSegment(segIdx, onEnd) {
+  if (!S.audioEl || !S.audioLoaded) { onEnd && onEnd(); return; }
+
+  let start, end;
+  if (S.sentenceSegments && S.sentenceSegments[segIdx]) {
+    start = S.sentenceSegments[segIdx].start;
+    end = S.sentenceSegments[segIdx].end;
+  } else {
+    start = S.sentenceTimings[segIdx] || 0;
+    end = segIdx < S.total - 1 ? (S.sentenceTimings[segIdx + 1] || S.audioDuration) : S.audioDuration;
+  }
+
+  S.audioEl.currentTime = start;
+  S.audioEl.onended = null;
+
+  const onReady = () => {
+    S.audioEl.removeEventListener('seeked', onReady);
+    S.audioEl.play().catch(() => {});
+  };
+  S.audioEl.addEventListener('seeked', onReady, { once: true });
+  setTimeout(() => {
+    if (S.audioEl.paused && S.mode !== 'idle') {
+      S.audioEl.removeEventListener('seeked', onReady);
+      S.audioEl.play().catch(() => {});
+    }
+  }, 200);
+
+  // Word count for this sentence
+  const words = ARTICLE.sentences[segIdx].en.split(/\s+/);
+  const wordCount = words.length;
+  const segDur = end - start;
+
+  // Track word highlighting via requestAnimationFrame (precise, no drift)
+  function trackWords() {
+    if (S.mode === 'idle') return;
+    const elapsed = S.audioEl.currentTime - start;
+    if (elapsed < 0 || elapsed > segDur + 0.5) {
+      requestAnimationFrame(trackWords);
+      return;
+    }
+    // Word index weighted by character length (longer words take more time)
+    let totalChars = 0;
+    for (let i = 0; i < wordCount; i++) totalChars += words[i].length;
+    let charPos = 0;
+    let wi = wordCount - 1;
+    for (let i = 0; i < wordCount; i++) {
+      const wordEnd = charPos + words[i].length;
+      if (elapsed / segDur < wordEnd / totalChars) { wi = i; break; }
+      charPos = wordEnd;
+    }
+    highlightWord(wi);
+
+    if (S.audioEl.currentTime < end) {
+      requestAnimationFrame(trackWords);
+    }
+  }
+  requestAnimationFrame(trackWords);
+
+  // Monitor end of segment
+  function checkEnd() {
+    if (S.mode === 'idle') return;
+    if (S.audioEl.currentTime >= end) {
+      S.audioEl.pause();
+      clearHighlights();
+      onEnd && onEnd();
+    } else {
+      requestAnimationFrame(checkEnd);
+    }
+  }
+  requestAnimationFrame(checkEnd);
+}
+
+// ═══════════════════════════════════════════
+// Full article: play MP3, highlight sentences + words
+// ═══════════════════════════════════════════
+function readAllSentences() {
+  S.mode = 'full';
+  updateModeUI();
+
+  if (!S.audioLoaded) {
+    el.audioHint.textContent = '请先加载MP3音频（点击右上角音符图标）';
+    S.mode = 'idle'; updateModeUI();
+    return;
+  }
+
+  S.audioEl.currentTime = 0;
+  S.audioEl.onended = null;
+  S.audioEl.play().catch(() => {});
+
+  let lastSentIdx = -1;
+  function track() {
+    if (S.mode !== 'full') return;
+    const t = S.audioEl.currentTime;
+
+    // Find current sentence
+    let idx = 0;
+    for (let i = S.sentenceTimings.length - 1; i >= 0; i--) {
+      if (t >= S.sentenceTimings[i]) { idx = i; break; }
+    }
+
+    // Switch sentence page
+    if (idx !== lastSentIdx) {
+      lastSentIdx = idx;
+      S.idx = idx;
+      render();
+      const card = document.querySelector('.sentence-card');
+      card.style.borderColor = 'var(--accent)';
+      setTimeout(() => card.style.borderColor = '', 600);
+    }
+
+    // Highlight current word (weighted by character length)
+    const words = ARTICLE.sentences[idx].en.split(/\s+/);
+    const sentStart = S.sentenceTimings[idx] || 0;
+    const sentEnd = idx < S.total - 1 ? (S.sentenceTimings[idx + 1] || S.audioDuration) : S.audioDuration;
+    const sentDur = sentEnd - sentStart;
+    const elapsed = t - sentStart;
+    let totalChars = 0;
+    for (let i = 0; i < words.length; i++) totalChars += words[i].length;
+    let charPos = 0, wi = words.length - 1;
+    for (let i = 0; i < words.length; i++) {
+      const wordEnd = charPos + words[i].length;
+      if (elapsed / sentDur < wordEnd / totalChars) { wi = i; break; }
+      charPos = wordEnd;
+    }
+    highlightWord(wi);
+
+    S.fullTimer = requestAnimationFrame(track);
+  }
+  requestAnimationFrame(track);
+
+  S.audioEl.onended = () => {
+    clearHighlights();
+    if (S.loop) {
+      S.audioEl.currentTime = 0;
+      S.audioEl.play().catch(() => {});
+      requestAnimationFrame(track);
+    } else {
+      S.mode = 'idle';
+      updateModeUI();
+    }
+  };
+}
+
+// ═══════════════════════════════════════════
+// Sentence loop: loop current sentence from MP3, 5s pause
+// ═══════════════════════════════════════════
+function readSentenceLoop() {
+  if (!S.audioLoaded) {
+    el.audioHint.textContent = '请先加载MP3音频（点击右上角音符图标）';
+    return;
+  }
+  S.mode = 'sentence';
+  updateModeUI();
+
+  function loopOnce() {
+    if (S.mode !== 'sentence') return;
+    playSegment(S.idx, () => {
+      if (S.mode === 'sentence') {
+        setTimeout(loopOnce, 5000);
+      }
+    });
+  }
+  loopOnce();
+}
+
+// ═══════════════════════════════════════════
+// Stop All
+// ═══════════════════════════════════════════
+function stopAll() {
+  S.mode = 'idle';
+  stopSpeech();
+  clearHighlights();
+  if (S.audioEl) {
+    S.audioEl.onended = null;
+    S.audioEl.pause();
+  }
+  if (S.fullTimer) {
+    cancelAnimationFrame(S.fullTimer);
+    S.fullTimer = null;
+  }
+  if (S.segmentTimer) {
+    clearTimeout(S.segmentTimer);
+    S.segmentTimer = null;
+  }
+  updateModeUI();
+}
+
+// ═══════════════════════════════════════════
+// UI State
+// ═══════════════════════════════════════════
+function updateModeUI() {
+  el.btnFull.classList.toggle('playing', S.mode === 'full');
+  el.btnSentence.classList.toggle('playing', S.mode === 'sentence');
+  el.btnStop.style.display = (S.mode !== 'idle') ? '' : 'none';
+}
+
+// ═══════════════════════════════════════════
+// Speed Control
+// ═══════════════════════════════════════════
+const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2];
+function updateSpeed(delta) {
+  const curIdx = SPEEDS.indexOf(S.speed);
+  let newIdx = curIdx + delta;
+  if (newIdx < 0) newIdx = 0;
+  if (newIdx >= SPEEDS.length) newIdx = SPEEDS.length - 1;
+  S.speed = SPEEDS[newIdx];
+  el.speedVal.textContent = S.speed + 'x';
+  if (S.audioEl) S.audioEl.playbackRate = S.speed;
+}
+
+// ═══════════════════════════════════════════
+// Audio File Loading
+// ═══════════════════════════════════════════
+function loadAudio(file) {
+  if (S.audioEl) {
+    S.audioEl.pause();
+  }
+  S.audioEl = new Audio();
+  S.audioEl.src = URL.createObjectURL(file);
+  S.audioEl.preload = 'auto';
+
+  S.audioEl.addEventListener('loadedmetadata', () => {
+    S.audioDuration = S.audioEl.duration;
+    S.audioLoaded = true;
+    decodeAudioAndDetect();
+    el.audioHint.textContent = '正在分析音频...';
+  });
+
+  S.audioEl.addEventListener('error', () => {
+    el.audioHint.textContent = '音频加载失败，请点击右上角手动选择';
+  });
+}
+
+function loadAudioFromURL(urls) {
+  if (S.audioEl) S.audioEl.pause();
+  if (typeof urls === 'string') urls = [urls];
+
+  let idx = 0;
+  function tryNext() {
+    if (idx >= urls.length) {
+      el.audioHint.textContent = '未找到音频文件，请点击右上角手动选择';
+      return;
+    }
+    const audio = new Audio();
+    audio.preload = 'auto';
+    audio.src = urls[idx];
+
+    audio.addEventListener('loadedmetadata', () => {
+      S.audioEl = audio;
+      S.audioDuration = audio.duration;
+      S.audioLoaded = true;
+      decodeAudioAndDetect();
+    }, { once: true });
+
+    audio.addEventListener('error', () => {
+      idx++;
+      tryNext();
+    }, { once: true });
+
+    // Trigger load
+    audio.load();
+  }
+  tryNext();
+}
+
+function formatTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+// ═══════════════════════════════════════════
+// Swipe Navigation
+// ═══════════════════════════════════════════
+let touchStartX = 0;
+let touchStartY = 0;
+
+document.addEventListener('touchstart', (e) => {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+}, { passive: true });
+
+document.addEventListener('touchend', (e) => {
+  if (S.mode !== 'idle') return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  if (Math.abs(dx) < 60 || Math.abs(dy) > Math.abs(dx) * 0.7) return;
+
+  if (dx < 0 && S.idx < S.total - 1) {
+    S.idx++;
+    render();
+  } else if (dx > 0 && S.idx > 0) {
+    S.idx--;
+    render();
+  }
+}, { passive: true });
+
+// ═══════════════════════════════════════════
+// Keyboard Navigation
+// ═══════════════════════════════════════════
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' && S.idx < S.total - 1) { stopAll(); S.idx++; render(); }
+  if (e.key === 'ArrowLeft' && S.idx > 0) { stopAll(); S.idx--; render(); }
+  if (e.key === 'Escape') { hidePopup(); stopAll(); }
+});
+
+// ═══════════════════════════════════════════
+// Event Bindings
+// ═══════════════════════════════════════════
+el.btnFull.addEventListener('click', () => {
+  if (S.mode === 'full') { stopAll(); return; }
+  stopAll();
+  readAllSentences();
+});
+
+el.btnLoop.addEventListener('click', () => {
+  S.loop = !S.loop;
+  el.btnLoop.classList.toggle('loop-on', S.loop);
+});
+
+el.btnSentence.addEventListener('click', () => {
+  if (S.mode === 'sentence') { stopAll(); return; }
+  stopAll();
+  readSentenceLoop();
+});
+
+el.btnStop.addEventListener('click', stopAll);
+
+el.btnPrev.addEventListener('click', () => { stopAll(); if (S.idx > 0) { S.idx--; render(); } });
+el.btnNext.addEventListener('click', () => { stopAll(); if (S.idx < S.total - 1) { S.idx++; render(); } });
+
+el.speedDown.addEventListener('click', () => updateSpeed(-1));
+el.speedUp.addEventListener('click', () => updateSpeed(1));
+
+el.audioInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (file) loadAudio(file);
+});
+
+// Prevent popup scroll propagation
+el.wordPopup.addEventListener('touchmove', (e) => e.stopPropagation(), { passive: true });
+
+// ═══════════════════════════════════════════
+// Init
+// ═══════════════════════════════════════════
+function init() {
+  render();
+
+  // WeChat audio unlock: first touch unlocks audio playback
+  let unlocked = false;
+  function unlockAudio() {
+    if (unlocked) return;
+    unlocked = true;
+    // Trigger audio element unlock
+    if (S.audioEl) {
+      const p = S.audioEl.play();
+      if (p) p.then(() => S.audioEl.pause()).catch(() => {});
+    }
+    document.removeEventListener('touchstart', unlockAudio);
+    document.removeEventListener('touchend', unlockAudio);
+    document.removeEventListener('click', unlockAudio);
+  }
+  document.addEventListener('touchstart', unlockAudio, { passive: true });
+  document.addEventListener('touchend', unlockAudio, { passive: true });
+  document.addEventListener('click', unlockAudio);
+
+  // WeixinJSBridge support for older WeChat versions
+  if (typeof WeixinJSBridge !== 'undefined') {
+    WeixinJSBridge.invoke('getNetworkType', {}, () => {
+      if (S.audioEl) { S.audioEl.play(); S.audioEl.pause(); }
+    });
+  }
+  document.addEventListener('WeixinJSBridgeReady', () => {
+    if (S.audioEl) { S.audioEl.play(); S.audioEl.pause(); }
+  });
+
+  // Auto-load audio — try multiple possible paths
+  loadAudioFromURL([
+    'audio.mp3',
+    './audio.mp3',
+    'C25_audio.mp3',
+    'C25 中国茶历史.mp3'
+  ]);
+}
+
+init();
+</script>
+</body>
+</html>
