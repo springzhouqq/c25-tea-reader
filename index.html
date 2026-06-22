@@ -443,7 +443,6 @@ function hidePopup() {
 
 el.overlay.addEventListener('click', hidePopup);
 el.popupPlay.addEventListener('click', () => {
-  hidePopup();
   if (currentPopupWord) playWordThreeTimes(currentPopupWord);
 });
 
@@ -648,8 +647,10 @@ function decodeAudioAndDetect() {
         try {
           const raw = audioBuffer.getChannelData(0);
           const sr = audioBuffer.sampleRate;
+          const dur = audioBuffer.duration;
 
-          const winSize = Math.floor(sr * 0.02);
+          // RMS energy in 10ms windows (finer resolution)
+          const winSize = Math.floor(sr * 0.01);
           const energy = [];
           for (let i = 0; i < raw.length; i += winSize) {
             let sum = 0, n = 0;
@@ -659,49 +660,51 @@ function decodeAudioAndDetect() {
             energy.push(Math.sqrt(sum / n));
           }
 
+          // Find all silence gaps (threshold 3% of max, minimum 150ms)
           const maxE = Math.max(...energy);
-          const threshold = maxE * 0.015;
-          const minWin = 10;
-          const silent = [];
+          const threshold = maxE * 0.03;
+          const minSilenceWin = 15;
+          const gaps = [];
           let run = 0;
           for (let i = 0; i < energy.length; i++) {
             if (energy[i] < threshold) { run++; }
             else {
-              if (run >= minWin) silent.push({ s: (i - run) * winSize / sr, e: i * winSize / sr });
+              if (run >= minSilenceWin) {
+                const gapStart = (i - run) * winSize / sr;
+                const gapEnd = i * winSize / sr;
+                gaps.push({ mid: (gapStart + gapEnd) / 2, dur: gapEnd - gapStart });
+              }
               run = 0;
             }
           }
-          if (run >= minWin) silent.push({ s: (energy.length - run) * winSize / sr, e: energy.length * winSize / sr });
-
-          const segs = [];
-          let last = 0;
-          for (const g of silent) {
-            if (g.s - last > 0.4) segs.push({ start: last, end: g.s });
-            last = g.e;
-          }
-          if (audioBuffer.duration - last > 0.4) segs.push({ start: last, end: audioBuffer.duration });
-
-          for (const seg of segs) {
-            seg.start = Math.max(0, seg.start - 0.25);
-            seg.end = Math.min(audioBuffer.duration, seg.end + 0.12);
+          if (run >= minSilenceWin) {
+            const gapStart = (energy.length - run) * winSize / sr;
+            const gapEnd = energy.length * winSize / sr;
+            gaps.push({ mid: (gapStart + gapEnd) / 2, dur: gapEnd - gapStart });
           }
 
-          while (segs.length > S.total + 3 && segs.length > 2) {
-            let minGap = Infinity, mi = -1;
-            for (let i = 0; i < segs.length - 1; i++) {
-              const gap = segs[i + 1].start - segs[i].end;
-              if (gap < minGap) { minGap = gap; mi = i; }
+          if (gaps.length >= S.total - 1) {
+            // Pick the N-1 longest gaps as sentence boundaries
+            gaps.sort((a, b) => b.dur - a.dur);
+            const boundaries = gaps.slice(0, S.total - 1).map(g => g.mid).sort((a, b) => a - b);
+
+            // Build segments from boundaries
+            S.sentenceSegments = [];
+            S.sentenceTimings = [];
+            let prevEnd = 0;
+            for (let i = 0; i < boundaries.length; i++) {
+              S.sentenceSegments.push({ start: prevEnd, end: boundaries[i] });
+              S.sentenceTimings.push(prevEnd);
+              prevEnd = boundaries[i];
             }
-            if (mi >= 0) { segs[mi].end = segs[mi + 1].end; segs.splice(mi + 1, 1); }
-            else break;
-          }
+            S.sentenceSegments.push({ start: prevEnd, end: dur });
+            S.sentenceTimings.push(prevEnd);
 
-          if (segs.length >= S.total) {
-            S.sentenceSegments = segs.slice(0, S.total);
-            S.sentenceTimings = S.sentenceSegments.map(s => s.start);
+            el.audioHint.textContent = `音频已就绪 (${formatTime(dur)}) · 静音检测对齐`;
           } else {
             S.sentenceSegments = null;
             calcSentenceTimings();
+            el.audioHint.textContent = `音频已就绪 (${formatTime(dur)}) · 原声播放`;
           }
         } catch(e) {
           S.sentenceSegments = null;
