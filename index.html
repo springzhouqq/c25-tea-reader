@@ -192,7 +192,7 @@ body{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
   <div class="popup-pos" id="popupPos"></div>
   <div class="popup-def" id="popupDef"></div>
   <div class="popup-actions">
-    <button class="popup-btn primary" id="popupPlay">循环播放此句</button>
+    <button class="popup-btn primary" id="popupPlay">读3次</button>
     <button class="popup-btn" id="popupMemorize">已记住</button>
   </div>
 </div>
@@ -209,99 +209,84 @@ const ARTICLE = {
       en: 'Chinese tea has a magical history that began with a simple leaf falling into water.',
       zh: '中国茶有着神奇的历史，始于一片叶子落入水中。',
       vocab: {
-        'magical': { p:'/ˈmædʒɪkl/', pos:'adj.', d:'神奇的；有魔力的', f:'easy' },
-        'history': { p:'/ˈhɪstri/', pos:'n.', d:'历史；历史学\n[C,U]历史；[C]个人经历', f:'easy' }
+        'leaf': { p:'/liːf/', pos:'n.', d:'[C]（pl.leaves）叶子；（纸）页', f:'high' }
       }
     },
     {
       en: 'This accidental discovery led to the creation of tea, which has since become an essential part of Chinese culture.',
       zh: '这次意外发现引发了茶的诞生，自此，茶成为中国文化中不可或缺的一部分。',
       vocab: {
-        'accidental': { p:'/ˌæksɪˈdentl/', pos:'adj.', d:'意外的；偶然的', f:'mid' },
-        'discovery': { p:'/dɪˈskʌvəri/', pos:'n.', d:'被发现的事物；[C,U]发现；发觉', f:'high' },
-        'creation': { p:'/kriˈeɪʃn/', pos:'n.', d:'创造；创作；创造物', f:'mid' },
-        'essential': { p:'/ɪˈsenʃl/', pos:'adj.', d:'必不可少的；极其重要的；基本的', f:'high' },
-        'culture': { p:'/ˈkʌltʃə(r)/', pos:'n.', d:'[C,U]文化', f:'high' }
+        'accidental': { p:'/ˌæksɪˈdentl/', pos:'adj.', d:'意外的；偶然的（来自 accident）\naccident: n.①[C]（交通）事故；车祸；意外遭遇；失事\n②[C，U]意外；偶然的事', f:'high' },
+        'discovery': { p:'/dɪˈskʌvəri/', pos:'n.', d:'[C]被发现的事物；[C，U]发现；发觉', f:'high' },
+        'essential': { p:'/ɪˈsenʃl/', pos:'a.', d:'①必不可少的；极其重要的；完全必要的\n②基本的；本质的；根本的\nn.③[C,常用pl.]必不可少的东西；必需品\n④(essentials)[pl.]（某学科的）基础，基本知识；要点', f:'high' },
+        'culture': { p:'/ˈkʌltʃə(r)/', pos:'n.', d:'[C，U]文化', f:'high' }
       }
     },
     {
       en: 'From ancient poetry to modern tea ceremonies, the art of tea has woven itself into the fabric of Chinese life.',
       zh: '从古代诗歌到现代茶艺，茶的艺术已经深深融入中国人的生活纹理中。',
       vocab: {
-        'ancient': { p:'/ˈeɪnʃənt/', pos:'adj.', d:'古代的；古老的', f:'high' },
-        'poetry': { p:'/ˈpəʊətri/', pos:'n.', d:'[U]诗歌；诗作；诗集', f:'mid' },
-        'modern': { p:'/ˈmɒdn/', pos:'adj.', d:'现代化的；现代的', f:'easy' },
-        'ceremonies': { p:'/ˈserɪməniz/', pos:'n.', d:'典礼；仪式（ceremony的复数）', f:'easy' },
-        'woven': { p:'/ˈwəʊvn/', pos:'v.', d:'编织（weave的过去分词）', f:'low' },
-        'fabric': { p:'/ˈfæbrɪk/', pos:'n.', d:'[U,C]织物；布料\n[sing.]（社会、机构等的）结构', f:'mid' }
+        'ancient': { p:'/ˈeɪnʃənt/', pos:'a.', d:'古代的；古老的', f:'high' },
+        'poetry': { p:'/ˈpəʊətri/', pos:'n.', d:'①[U]诗歌；诗作；诗集\n②[U,sing.]诗意；美好的品质；优雅的气质', f:'mid' },
+        'modern': { p:'/ˈmɒdn/', pos:'a.', d:'现代化的；现代的；时髦的', f:'easy' },
+        'fabric': { p:'/ˈfæbrɪk/', pos:'n.', d:'①[U,C]织物；布料\n②[sing.]（社会、机构等的）结构', f:'mid' }
       }
     },
     {
       en: 'In the spring, tea picking is a significant activity in South China, especially in the Yangtze River basin.',
       zh: '在春天，采茶是中国南方，尤其是长江流域的重要活动。',
       vocab: {
-        'significant': { p:'/sɪɡˈnɪfɪkənt/', pos:'adj.', d:'有重大意义的；显著的\n意味深长的；别有含义的', f:'high' },
-        'activity': { p:'/ækˈtɪvəti/', pos:'n.', d:'[C]活动；[U]热闹状况', f:'easy' },
-        'especially': { p:'/ɪˈspeʃəli/', pos:'adv.', d:'特别；尤其；格外', f:'easy' },
-        'basin': { p:'/ˈbeɪsn/', pos:'n.', d:'[C]盆；盆地；洗涤槽\n[C]流域', f:'low' }
+        'significant': { p:'/sɪɡˈnɪfɪkənt/', pos:'a.', d:'①有重大意义的；显著的\n②意味深长的；别有含义的', f:'high' },
+        'activity': { p:'/ækˈtɪvəti/', pos:'n.', d:'[U]热闹状况；[C]（个体性的）活动\n[常用pl.]（群体性的）活动', f:'easy' },
+        'especially': { p:'/ɪˈspeʃəli/', pos:'ad.', d:'①特别；尤其；格外\n②专门；特地\n③十分；非常', f:'easy' },
+        'basin': { p:'/ˈbeɪsn/', pos:'n.', d:'①[C]盆；一盆（的量）\n②[C]盆地；凹地\n③[C]洗涤槽\n④[C]流域', f:'low' }
       }
     },
     {
       en: 'The first tea leaves, known as Mingqian tea, are picked before the Qingming Festival in early April.',
       zh: '清明节前采摘的第一批茶叶被称为明前茶。',
       vocab: {
-        'leaves': { p:'/liːvz/', pos:'n.', d:'叶子（leaf的复数）', f:'easy' },
-        'festival': { p:'/ˈfestɪvl/', pos:'n.', d:'[C]节日；庆典', f:'easy' }
+        'leaves': { p:'/liːvz/', pos:'n.', d:'leaf 的复数形式\nleaf: n.[C]（pl.leaves）叶子；（纸）页', f:'high' }
       }
     },
     {
       en: 'These leaves are prized for their exceptional quality and bring joy to tea lovers.',
       zh: '这些茶叶因其卓越的品质而备受珍视，给茶爱好者带来了极大的喜悦。',
       vocab: {
-        'prized': { p:'/praɪzd/', pos:'adj.', d:'被珍视的；被高度重视的', f:'low' },
-        'exceptional': { p:'/ɪkˈsepʃənl/', pos:'adj.', d:'杰出的；卓越的；异常的', f:'mid' },
-        'quality': { p:'/ˈkwɒləti/', pos:'n.', d:'[U,C]质量；品质；特征', f:'high' },
-        'joy': { p:'/dʒɔɪ/', pos:'n.', d:'[U]喜悦；高兴\n[C]乐趣；令人高兴的事', f:'high' }
+        'prized': { p:'/praɪzd/', pos:'v./adj.', d:'被珍视的（prize的过去分词/形容词）\nprize: n.[C]奖赏，奖品，奖金\nvt.珍视；高度重视', f:'high' },
+        'exceptional': { p:'/ɪkˈsepʃənl/', pos:'adj.', d:'①杰出的；优秀的；卓越的\n②特别的；异常的；罕见的', f:'mid' },
+        'quality': { p:'/ˈkwɒləti/', pos:'n.', d:'①[U，C]质量；品质\n②[U]上乘；优质；高标准\n③[C]（尤指好的）素质，品德\n④[C，U]特征；特质；特色\na.⑤优质的；高质量的', f:'high' },
+        'joy': { p:'/dʒɔɪ/', pos:'n.', d:'①[U]喜悦；高兴；欢欣；愉快\n②[C]乐趣；令人高兴的人（或事）\n③[U]成功；满意；满足', f:'high' }
       }
     },
     {
       en: "China's Zhejiang province is famous for its tea production.",
       zh: '中国的浙江省因其茶叶生产而闻名。',
-      vocab: {
-        'province': { p:'/ˈprɒvɪns/', pos:'n.', d:'[C]省份', f:'easy' },
-        'production': { p:'/prəˈdʌkʃn/', pos:'n.', d:'[U]生产；制造', f:'easy' }
-      }
+      vocab: {}
     },
     {
       en: 'Renowned varieties such as Anji White Tea and West Lake Longjing Tea come from here.',
       zh: '著名的茶类如安吉白茶和西湖龙井茶就产自这里。',
       vocab: {
-        'renowned': { p:'/rɪˈnaʊnd/', pos:'adj.', d:'著名的；有声望的', f:'low' },
-        'varieties': { p:'/vəˈraɪətiz/', pos:'n.', d:'品种；种类（variety的复数）', f:'mid' }
+        'varieties': { p:'/vəˈraɪətiz/', pos:'n.', d:'variety 的复数形式\nvariety: n.①[sing.]（同一事物的）不同种类\n②[U]变化；多样化；多变性\n③[C]（植物、语言等的）品种；变体；异体\n④[U]综艺节目', f:'mid' }
       }
     },
     {
       en: 'During peak seasons, tea fields are bustling with workers and tourists who come to enjoy the picturesque scenery and savor freshly brewed tea.',
       zh: '在采茶旺季，茶田里挤满了工人和游客，他们来这里欣赏美丽的风景，品尝新鲜沏好的茶。',
       vocab: {
-        'peak': { p:'/piːk/', pos:'n./adj.', d:'[C]顶峰；高峰；最高的', f:'mid' },
-        'bustling': { p:'/ˈbʌslɪŋ/', pos:'adj.', d:'繁忙的；熙熙攘攘的', f:'low' },
-        'tourists': { p:'/ˈtʊərɪsts/', pos:'n.', d:'旅游者；游客（tourist的复数）', f:'easy' },
+        'tourists': { p:'/ˈtʊərɪsts/', pos:'n.', d:'tourist 的复数形式\ntourist: n.[C]旅游者，观光者，游客', f:'easy' },
         'picturesque': { p:'/ˌpɪktʃəˈresk/', pos:'adj.', d:'美丽的；如画的', f:'low' },
         'scenery': { p:'/ˈsiːnəri/', pos:'n.', d:'[U]风景；景色', f:'mid' },
-        'savor': { p:'/ˈseɪvə(r)/', pos:'v.', d:'品味；细细品尝；享受', f:'low' },
-        'freshly': { p:'/ˈfreʃli/', pos:'adv.', d:'新鲜地；刚刚', f:'easy' },
-        'brewed': { p:'/bruːd/', pos:'adj.', d:'沏(茶)；酿造(啤酒)的', f:'low' }
+        'savor': { p:'/ˈseɪvə(r)/', pos:'v.', d:'品味；细细品尝；享受', f:'low' }
       }
     },
     {
       en: 'The tradition and love for tea continue to thrive, honoring a legacy that spans thousands of years.',
       zh: '对茶的传统和热爱继续繁荣，尊重着跨越数千年的遗产。',
       vocab: {
-        'tradition': { p:'/trəˈdɪʃn/', pos:'n.', d:'[C,U]传统；传统的信仰（或风俗）', f:'high' },
-        'thrive': { p:'/θraɪv/', pos:'v.', d:'繁荣；兴旺；茁壮成长', f:'mid' },
-        'legacy': { p:'/ˈleɡəsi/', pos:'n.', d:'[C]遗产；遗留物', f:'mid' },
-        'spans': { p:'/spænz/', pos:'v.', d:'跨越；持续（span的第三人称单数）', f:'easy' }
+        'tradition': { p:'/trəˈdɪʃn/', pos:'n.', d:'[C, U]传统；传统的信仰（或风俗）', f:'high' },
+        'thrive': { p:'/θraɪv/', pos:'v.', d:'繁荣；兴旺；茁壮成长', f:'mid' }
       }
     }
   ]
@@ -459,8 +444,29 @@ function hidePopup() {
 el.overlay.addEventListener('click', hidePopup);
 el.popupPlay.addEventListener('click', () => {
   hidePopup();
-  readSentenceLoop();
+  playThreeTimes();
 });
+
+// Play current sentence 3 times from MP3 with 5s pause
+function playThreeTimes() {
+  if (!S.audioLoaded) return;
+  S.mode = 'sentence';
+  updateModeUI();
+  let count = 0;
+  function playOnce() {
+    if (S.mode !== 'sentence') return;
+    count++;
+    playSegment(S.idx, () => {
+      if (count < 3) {
+        setTimeout(playOnce, 5000);
+      } else {
+        S.mode = 'idle';
+        updateModeUI();
+      }
+    });
+  }
+  playOnce();
+}
 el.popupMemorize.addEventListener('click', () => {
   if (!currentPopupWord) return;
   const k = currentPopupWord.toLowerCase();
